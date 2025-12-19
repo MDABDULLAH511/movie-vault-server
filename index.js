@@ -1,6 +1,6 @@
 const express = require("express");
 const cors = require("cors");
-const { MongoClient, ServerApiVersion } = require("mongodb");
+const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
 const app = express();
 require("dotenv").config();
 const port = process.env.POST || 3000;
@@ -26,10 +26,19 @@ async function run() {
     const db = client.db("Movie_Vault_DB");
     const movieCollection = db.collection("movie");
 
+    //get. Get all movie
     app.get("/movie", async (req, res) => {
       const query = {};
       const result = await movieCollection.find().toArray();
       res.send(result);
+    });
+
+    // Get single movie by ID
+    app.get("/movie/:id", async (req, res) => {
+      const { id } = req.params;
+
+      const movie = await movieCollection.findOne({ _id: new ObjectId(id) });
+      res.send(movie);
     });
 
     //post

@@ -25,7 +25,27 @@ async function run() {
 
     const db = client.db("Movie_Vault_DB");
     const movieCollection = db.collection("movie");
+    const userCollection = db.collection("users");
 
+    // ========== User Related API ========== //
+    //Post API create user
+    app.post("/user", async (req, res) => {
+      const user = req.body;
+      user.createdAt = new Date();
+
+      //check user already exit or not
+      const email = user.email;
+      const userExits = await userCollection.findOne({ email });
+
+      if (userExits) {
+        return res.send({ message: "User already exits" });
+      }
+
+      const result = await userCollection.insertOne(user);
+      res.send(result);
+    });
+
+    //========== Movie Related API ==========//
     //get. Get all movie
     app.get("/movie", async (req, res) => {
       const query = {};
@@ -97,8 +117,6 @@ async function run() {
       res.send(result);
     });
 
-    //
-    //
     //
     // Send a ping to confirm a successful connection
     await client.db("admin").command({ ping: 1 });

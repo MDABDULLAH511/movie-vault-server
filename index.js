@@ -41,6 +41,19 @@ async function run() {
       res.send(movie);
     });
 
+    //Get all Movie by email
+    app.get("/movie-user", async (req, res) => {
+      const email = req.query.email;
+      const query = {};
+
+      if (email) {
+        query.addedBy = email;
+      }
+
+      const result = await movieCollection.find(query).toArray();
+      res.send(result);
+    });
+
     //post
     app.post("/movie", async (req, res) => {
       const movie = req.body;

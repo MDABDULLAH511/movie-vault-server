@@ -54,8 +54,18 @@ async function run() {
     //========== Movie Related API ==========//
     //get. Get all movie
     app.get("/movie", async (req, res) => {
+      const { limit = 0, sort = "createdAt", order } = req.query;
       const query = {};
-      const result = await movieCollection.find().toArray();
+
+      //   Sort
+      const sortOption = {};
+      sortOption[sort] = order === "asc" ? 1 : -1;
+
+      const result = await movieCollection
+        .find(query)
+        .sort(sortOption)
+        .limit(Number(limit))
+        .toArray();
       res.send(result);
     });
 

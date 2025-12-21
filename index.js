@@ -29,6 +29,11 @@ async function run() {
     const featuredCollection = db.collection("featured");
 
     // ========== User Related API ========== //
+    //Get User
+    app.get("/user", async (req, res) => {
+      const result = await userCollection.find().toArray();
+      res.send(result);
+    });
     //Post API create user
     app.post("/user", async (req, res) => {
       const user = req.body;

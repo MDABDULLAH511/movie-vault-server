@@ -26,6 +26,7 @@ async function run() {
     const db = client.db("Movie_Vault_DB");
     const movieCollection = db.collection("movie");
     const userCollection = db.collection("users");
+    const featuredCollection = db.collection("featured");
 
     // ========== User Related API ========== //
     //Post API create user
@@ -114,6 +115,13 @@ async function run() {
       const query = { _id: new ObjectId(id) };
 
       const result = await movieCollection.deleteOne(query);
+      res.send(result);
+    });
+
+    // ========== User Related API ========== //
+    //Get Featured Movie
+    app.get("/featured-movie", async (req, res) => {
+      const result = await featuredCollection.find().toArray();
       res.send(result);
     });
 

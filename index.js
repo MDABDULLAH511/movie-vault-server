@@ -54,8 +54,30 @@ async function run() {
     //========== Movie Related API ==========//
     //get. Get all movie
     app.get("/movie", async (req, res) => {
-      const { limit = 0, sort = "createdAt", order } = req.query;
+      const {
+        limit = 0,
+        sort = "createdAt",
+        order,
+        genres,
+        minRating,
+        maxRating,
+      } = req.query;
+
       const query = {};
+
+      // Filter by multiple genres
+      if (genres) {
+        query.genre = {
+          $in: genres.split(","),
+        };
+      }
+
+      // Filter by rating range
+      if (minRating || maxRating) {
+        query.rating = {};
+        if (minRating) query.rating.$gte = Number(minRating);
+        if (maxRating) query.rating.$lte = Number(maxRating);
+      }
 
       //   Sort
       const sortOption = {};

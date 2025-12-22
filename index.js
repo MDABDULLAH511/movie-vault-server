@@ -27,6 +27,7 @@ async function run() {
     const movieCollection = db.collection("movie");
     const userCollection = db.collection("users");
     const featuredCollection = db.collection("featured");
+    const watchedCollection = db.collection("watched");
 
     // ========== User Related API ========== //
     //Get User
@@ -155,13 +156,90 @@ async function run() {
       res.send(result);
     });
 
-    // ========== User Related API ========== //
+    // ========== Featured Movie Related API ========== //
     //Get Featured Movie
     app.get("/featured-movie", async (req, res) => {
       const result = await featuredCollection.find().toArray();
       res.send(result);
     });
 
+    // ===== ===== Watch list Related Api ===== =====//
+    // Get API. pipeline / aggregate
+    app.get("/watched", async (req, res) => {
+      const email = req.query.email;
+
+      const result = await watchedCollection
+        .aggregate([
+          {
+            $match: { userEmail: email },
+          },
+          // lessonId is a String, we need to make it ObjectId
+          {
+            $addFields: {
+              lessonObjectId: { $toObjectId: "$movieId" },
+            },
+          },
+          {
+            $lookup: {
+              from: "movie", 
+              localField: "lessonObjectId", 
+              foreignField: "_id", 
+              as: "movie",
+            },
+          },
+          {
+            $unwind: "$movie",
+          },
+        ])
+        .toArray();
+
+      res.send(result);
+    });
+
+    //Check Watched Exits or not
+    app.get("/watched/check", async (req, res) => {
+      const { movieId, userEmail } = req.query;
+
+      const watched = await watchedCollection.findOne({
+        movieId,
+        userEmail,
+      });
+
+      res.send({ isWatched: !!watched });
+    });
+
+    //Post API.
+    app.post("/watched", async (req, res) => {
+      const watched = req.body;
+      const { movieId, userEmail } = req.body;
+      watched.createdAt = new Date();
+
+      // Check already watched
+      const exists = await watchedCollection.findOne({
+        movieId,
+        userEmail,
+      });
+      if (exists) {
+        return res.send({ message: "Already have" });
+      }
+
+      // Added new report
+      const result = await watchedCollection.insertOne(watched);
+      res.send(result);
+    });
+
+    //Delete API
+    app.delete("/watched", async (req, res) => {
+      const { movieId, userEmail } = req.body;
+
+      const result = await watchedCollection.deleteOne({
+        movieId,
+        userEmail,
+      });
+      res.send(result);
+    });
+
+    //
     //
     // Send a ping to confirm a successful connection
     await client.db("admin").command({ ping: 1 });

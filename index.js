@@ -7,7 +7,13 @@ const port = process.env.POST || 3000;
 
 //Middleware
 app.use(express.json());
-app.use(cors());
+
+app.use(
+  cors({
+    origin: ["http://localhost:5173", "https://movie-vault-52.netlify.app"],
+    credentials: true,
+  })
+);
 
 const uri = process.env.DATABASE_URL;
 
@@ -21,7 +27,7 @@ const client = new MongoClient(uri, {
 
 async function run() {
   try {
-    await client.connect();
+    // await client.connect();
 
     const db = client.db("Movie_Vault_DB");
     const movieCollection = db.collection("movie");
@@ -181,9 +187,9 @@ async function run() {
           },
           {
             $lookup: {
-              from: "movie", 
-              localField: "lessonObjectId", 
-              foreignField: "_id", 
+              from: "movie",
+              localField: "lessonObjectId",
+              foreignField: "_id",
               as: "movie",
             },
           },
@@ -242,10 +248,10 @@ async function run() {
     //
     //
     // Send a ping to confirm a successful connection
-    await client.db("admin").command({ ping: 1 });
-    console.log(
-      "Pinged your deployment. You successfully connected to MongoDB!"
-    );
+    // await client.db("admin").command({ ping: 1 });
+    // console.log(
+    //   "Pinged your deployment. You successfully connected to MongoDB!"
+    // );
   } finally {
   }
 }

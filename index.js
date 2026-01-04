@@ -41,6 +41,20 @@ async function run() {
       const result = await userCollection.find().toArray();
       res.send(result);
     });
+
+    // Get User by Email
+    app.get("/user/email", async (req, res) => {
+      const email = req.query.email;
+      const query = {};
+
+      if (email) {
+        query.email = email;
+      }
+
+      const result = await userCollection.find(query).toArray();
+      res.send(result);
+    });
+
     //Post API create user
     app.post("/user", async (req, res) => {
       const user = req.body;
@@ -55,6 +69,25 @@ async function run() {
       }
 
       const result = await userCollection.insertOne(user);
+      res.send(result);
+    });
+
+    // Update User
+    app.patch("/user", async (req, res) => {
+      const email = req.query.email;
+
+      const { displayName, photoURL } = req.body;
+
+      const query = { email };
+
+      const updatedDoc = {
+        $set: {
+          displayName,
+          photoURL,
+        },
+      };
+
+      const result = await userCollection.updateOne(query, updatedDoc);
       res.send(result);
     });
 

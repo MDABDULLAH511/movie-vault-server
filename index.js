@@ -202,6 +202,53 @@ async function run() {
       res.send(result);
     });
 
+    //Get most Watched Movie Details
+
+    app.get("/most-watched", async (req, res) => {
+      const Pipeline = [
+        // 1. Convert movieId string to ObjectId
+        {
+          $addFields: {
+            movieObjId: { $toObjectId: "$movieId" },
+          },
+        },
+        // 2. Group by movieObjId
+        {
+          $group: {
+            _id: "$movieObjId",
+            watchCount: { $sum: 1 },
+          },
+        },
+        // 3. Sort descending
+        { $sort: { watchCount: -1 } },
+        // 4. Limit top 1
+        { $limit: 1 },
+        // 5. Lookup movie details
+        {
+          $lookup: {
+            from: "movie",
+            localField: "_id",
+            foreignField: "_id",
+            as: "movieDetails",
+          },
+        },
+        { $unwind: "$movieDetails" },
+        // 6. Project required fields
+        {
+          $project: {
+            _id: 1,
+            watchCount: 1,
+            title: "$movieDetails.title",
+            posterUrl: "$movieDetails.posterUrl",
+            plotSummary: "$movieDetails.plotSummary",
+          },
+        },
+      ];
+
+      const result = await watchedCollection.aggregate(Pipeline).toArray();
+      res.send(result);
+    });
+
     //Check Watched Exits or not
     app.get("/watched/check", async (req, res) => {
       const { movieId, userEmail } = req.query;
